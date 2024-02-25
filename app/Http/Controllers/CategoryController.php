@@ -15,8 +15,8 @@ class CategoryController extends Controller
         $category = Category::when($request->searchParam, function($query) use ($request) {
             $query->where('name', 'like', "%{$request->searchParam}%");
         })->when($request->orderBy, function($query) use ($request) {
-            $query->orderBy($request->orderBy[0], $request->orderBy[1]);
-        })->get(['id', 'name'])->toArray();
+            $query->orderBy($request->orderBy['column'], $request->orderBy['order']);
+        })->paginate(($request->perPage ?? 10), ['id', 'name'], 'page', ($request->page ?? 1));
 
         return sendRes(200, null, $category);
     }
@@ -24,7 +24,7 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'categories.*.name' => 'required|max:150'
+            'categories.*.name' => 'required|max:150|unique:categories,name,NULL,id,deleted_at,NULL'
         ]);
 
         if ($validator->fails()) {
@@ -34,7 +34,13 @@ class CategoryController extends Controller
         try {
             DB::beginTransaction();
 
-            Category::insert($request->categories);
+            Category::insert(collect($request->categories)->map(function($req) {
+                return [
+                    'name' => $req['name'],
+                    'created_by' => auth()->id(),
+                    'created_at' => now()->format('Y-m-d H:i:s')
+                ];
+            })->toArray());
 
             DB::commit();
             return sendRes(200, 'Categories has been saved successfully', null);
@@ -52,7 +58,7 @@ class CategoryController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|max:150'
+            'name' => "required|max:150|unique:categories,name,{$id},id,deleted_at,NULL"
         ]);
 
         if ($validator->fails()) {
