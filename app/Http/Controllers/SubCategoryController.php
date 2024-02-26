@@ -2,29 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use Exception;
+use App\Models\SubCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Exception;
 
-class CategoryController extends Controller
+class SubCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $category = Category::when($request->searchParam, function ($query) use ($request) {
-            $query->where('name', 'like', "%{$request->searchParam}%");
+        $subCategory = SubCategory::when($request->searchParam, function ($query) use ($request) {
+            $query->where(function ($query) use ($request) {
+                $query->orWhere('name', 'like', "%{$request->searchParam}%")
+                    ->orWhereHas('category', fn ($query) => $query->where('name', 'like', "%{$request->searchParam}%"));
+            });
         })->when($request->orderBy, function ($query) use ($request) {
             $query->orderBy($request->orderBy['column'], $request->orderBy['order']);
-        })->paginate(($request->perPage ?? 10), ['id', 'name'], 'page', ($request->page ?? 1));
+        })->paginate(($request->perPage ?? 10), ['category.name', 'id', 'name'], 'page', ($request->page ?? 1));
 
-        return sendRes(200, null, $category);
+        return sendRes(200, null, $subCategory);
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'categories.*.name' => 'required|max:150|unique:categories,name,NULL,id,deleted_at,NULL'
+            'subCategories.category_id' => 'required|max:150|exists:categories,id,deleted_at,NULL',
+            'subCategories.*.name' => 'required|max:150|unique:categories,name,NULL,id,deleted_at,NULL'
         ]);
 
         if ($validator->fails()) {
@@ -34,8 +38,9 @@ class CategoryController extends Controller
         try {
             DB::beginTransaction();
 
-            Category::insert(collect($request->categories)->map(function ($req) {
+            SubCategory::insert(collect($request->categories)->map(function ($req) use ($request) {
                 return [
+                    'category_id' => $request->category_id,
                     'name' => $req['name'],
                     'created_by' => auth()->id(),
                     'created_at' => now()->format('Y-m-d H:i:s')
@@ -43,7 +48,7 @@ class CategoryController extends Controller
             })->toArray());
 
             DB::commit();
-            return sendRes(200, 'Categories has been saved successfully.', null);
+            return sendRes(200, 'Sub Categories has been saved successfully.', null);
         } catch (Exception $ex) {
             DB::rollBack();
             return sendRes(500, 'Something went wrong', null);
@@ -52,12 +57,13 @@ class CategoryController extends Controller
 
     public function show($id)
     {
-        return sendRes(200, null, Category::select(['id', 'name'])->find($id)->toArray());
+        return sendRes(200, null, SubCategory::select(['id', 'name'])->find($id)->toArray());
     }
 
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
+            'category_id' => 'required|max:150|exists:categories,id,deleted_at,NULL',
             'name' => "required|max:150|unique:categories,name,{$id},id,deleted_at,NULL"
         ]);
 
@@ -68,13 +74,14 @@ class CategoryController extends Controller
         try {
             DB::beginTransaction();
 
-            Category::find($id)->update([
+            SubCategory::find($id)->update([
+                'category_id' => $request->category_id,
                 'name' => $request->name,
                 'updated_by' => auth()->id()
             ]);
 
             DB::commit();
-            return sendRes(200, 'Category has been updated successfully.', null);
+            return sendRes(200, 'Sub Category has been updated successfully.', null);
         } catch (Exception $ex) {
             DB::rollBack();
             return sendRes(500, 'Something went wrong', null);
@@ -83,8 +90,8 @@ class CategoryController extends Controller
 
     public function destroy($id)
     {
-        Category::find($id)->delete();
+        SubCategory::find($id)->delete();
 
-        return sendRes(200, 'Category has been deleted successfully.', null);
+        return sendRes(200, 'Sub Category has been deleted successfully.', null);
     }
 }

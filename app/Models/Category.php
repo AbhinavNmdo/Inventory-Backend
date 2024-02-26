@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
@@ -16,4 +17,9 @@ class Category extends Model
         'created_at',
         'updated_at'
     ];
+
+    public function sub_categories(): HasMany
+    {
+        return $this->hasMany(SubCategory::class);
+    }
 }
