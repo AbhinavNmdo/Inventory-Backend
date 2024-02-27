@@ -27,6 +27,8 @@ Route::middleware('auth:api')->group(function () {
     Route::resource('category', CategoryController::class)->except([
         'index'
     ]);
+
+    Route::post('sub-category/index', [SubCategoryController::class, 'index']);
     Route::resource('sub-category', SubCategoryController::class)->except([
         'index'
     ]);

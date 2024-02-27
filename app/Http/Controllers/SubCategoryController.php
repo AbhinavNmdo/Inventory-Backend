@@ -19,7 +19,7 @@ class SubCategoryController extends Controller
             });
         })->when($request->orderBy, function ($query) use ($request) {
             $query->orderBy($request->orderBy['column'], $request->orderBy['order']);
-        })->paginate(($request->perPage ?? 10), ['category.name', 'id', 'name'], 'page', ($request->page ?? 1));
+        })->paginate(($request->perPage ?? 10), ['id', 'name'], 'page', ($request->page ?? 1));
 
         return sendRes(200, null, $subCategory);
     }
