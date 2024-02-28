@@ -12,14 +12,23 @@ class SubCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $subCategory = SubCategory::when($request->searchParam, function ($query) use ($request) {
-            $query->where(function ($query) use ($request) {
-                $query->orWhere('name', 'like', "%{$request->searchParam}%")
-                    ->orWhereHas('category', fn ($query) => $query->where('name', 'like', "%{$request->searchParam}%"));
-            });
-        })->when($request->orderBy, function ($query) use ($request) {
-            $query->orderBy($request->orderBy['column'], $request->orderBy['order']);
-        })->paginate(($request->perPage ?? 10), ['id', 'name'], 'page', ($request->page ?? 1));
+        $subCategory = SubCategory::with('category:id,name')
+            ->when($request->searchParam, function ($query) use ($request) {
+                $query->where(function ($query) use ($request) {
+                    $query->orWhere('name', 'like', "%{$request->searchParam}%")
+                        ->orWhereHas('category', fn ($query) => $query->where('name', 'like', "%{$request->searchParam}%"));
+                });
+            })
+            ->when($request->orderBy, function ($query) use ($request) {
+                !str_contains($request->orderBy['column'], '.') && $query->orderBy($request->orderBy['column'], $request->orderBy['order']);
+            })
+            ->select('id', 'category_id', 'name')
+            ->paginate(($request->perPage ?? 10), ['*'], 'page', ($request->page ?? 1));
+
+        if ($request->orderBy && str_contains($request->orderBy['column'], '.')) {
+            $sortedResult = $subCategory->getCollection()->sortBy($request->orderBy['column'], $request->orderBy['order'] == 'asc')->values();
+            $subCategory->setCollection($sortedResult);
+        }
 
         return sendRes(200, null, $subCategory);
     }
