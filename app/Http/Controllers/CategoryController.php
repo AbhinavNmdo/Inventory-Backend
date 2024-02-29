@@ -16,7 +16,13 @@ class CategoryController extends Controller
             $query->where('name', 'like', "%{$request->searchParam}%");
         })->when($request->orderBy, function ($query) use ($request) {
             $query->orderBy($request->orderBy['column'], $request->orderBy['order']);
-        })->paginate(($request->perPage ?? 10), ['id', 'name'], 'page', ($request->page ?? 1));
+        })->select(['id', 'name']);
+
+        if ($request->isPaginate) {
+            $category = $category->paginate(($request->perPage ?? 10), ['*'], 'page', ($request->page ?? 1));
+        } else {
+            $category = $category->get();
+        }
 
         return sendRes(200, null, $category);
     }
@@ -24,7 +30,7 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'categories.*.name' => 'required|max:150|unique:categories,name,NULL,id,deleted_at,NULL'
+            'categories.*.name' => 'required|max:150|distinct|unique:categories,name,NULL,id,deleted_at,NULL'
         ]);
 
         if ($validator->fails()) {

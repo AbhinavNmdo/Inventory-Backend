@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SubCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Exception;
@@ -22,12 +23,20 @@ class SubCategoryController extends Controller
             ->when($request->orderBy, function ($query) use ($request) {
                 !str_contains($request->orderBy['column'], '.') && $query->orderBy($request->orderBy['column'], $request->orderBy['order']);
             })
-            ->select('id', 'category_id', 'name')
-            ->paginate(($request->perPage ?? 10), ['*'], 'page', ($request->page ?? 1));
+            ->select('id', 'category_id', 'name');
+        
+        if ($request->isPaginate) {
+            $subCategory = $subCategory->paginate(($request->perPage ?? 10), ['*'], 'page', ($request->page ?? 1));
+        } else {
+            $subCategory = $subCategory->get();
+        }
 
         if ($request->orderBy && str_contains($request->orderBy['column'], '.')) {
-            $sortedResult = $subCategory->getCollection()->sortBy($request->orderBy['column'], $request->orderBy['order'] == 'asc')->values();
-            $subCategory->setCollection($sortedResult);
+            $sortedResult = $subCategory instanceof Collection ? $subCategory : $subCategory->getCollection();
+            $sortedResult->sortBy($request->orderBy['column'], $request->orderBy['order'] == 'asc');
+            if (!$subCategory instanceof Collection) {
+                $subCategory->setCollection($sortedResult->values());
+            }
         }
 
         return sendRes(200, null, $subCategory);
@@ -36,8 +45,8 @@ class SubCategoryController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'subCategories.category_id' => 'required|max:150|exists:categories,id,deleted_at,NULL',
-            'subCategories.*.name' => 'required|max:150|unique:categories,name,NULL,id,deleted_at,NULL'
+            'categoryId' => 'required|exists:categories,id,deleted_at,NULL',
+            'subCategories.*.name' => 'required|max:150|distinct|unique:sub_categories,name,NULL,id,deleted_at,NULL'
         ]);
 
         if ($validator->fails()) {
@@ -47,9 +56,9 @@ class SubCategoryController extends Controller
         try {
             DB::beginTransaction();
 
-            SubCategory::insert(collect($request->categories)->map(function ($req) use ($request) {
+            SubCategory::insert(collect($request->subCategories)->map(function ($req) use ($request) {
                 return [
-                    'category_id' => $request->category_id,
+                    'category_id' => $request->categoryId,
                     'name' => $req['name'],
                     'created_by' => auth()->id(),
                     'created_at' => now()->format('Y-m-d H:i:s')
@@ -72,8 +81,8 @@ class SubCategoryController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'category_id' => 'required|max:150|exists:categories,id,deleted_at,NULL',
-            'name' => "required|max:150|unique:categories,name,{$id},id,deleted_at,NULL"
+            'category_id' => 'required|exists:categories,id,deleted_at,NULL',
+            'name' => "required|max:150|unique:sub_categories,name,{$id},id,deleted_at,NULL"
         ]);
 
         if ($validator->fails()) {
