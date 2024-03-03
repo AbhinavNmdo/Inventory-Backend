@@ -32,10 +32,12 @@ class SubCategoryController extends Controller
         }
 
         if ($request->orderBy && str_contains($request->orderBy['column'], '.')) {
-            $sortedResult = $subCategory instanceof Collection ? $subCategory : $subCategory->getCollection();
-            $sortedResult->sortBy($request->orderBy['column'], $request->orderBy['order'] == 'asc');
+            $sortedResult = ($subCategory instanceof Collection ? $subCategory : $subCategory->getCollection())->sortBy($request->orderBy['column'], $request->orderBy['order'] == 'desc');
+
             if (!$subCategory instanceof Collection) {
                 $subCategory->setCollection($sortedResult->values());
+            } else {
+                $subCategory = $sortedResult;
             }
         }
 
