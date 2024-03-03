@@ -77,13 +77,13 @@ class SubCategoryController extends Controller
 
     public function show($id)
     {
-        return sendRes(200, null, SubCategory::select(['id', 'name'])->find($id)->toArray());
+        return sendRes(200, null, SubCategory::with('category:id,name')->select(['id', 'name', 'category_id'])->find($id)->toArray());
     }
 
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'category_id' => 'required|exists:categories,id,deleted_at,NULL',
+            'categoryId' => 'required|exists:categories,id,deleted_at,NULL',
             'name' => "required|max:150|unique:sub_categories,name,{$id},id,deleted_at,NULL"
         ]);
 
@@ -95,7 +95,7 @@ class SubCategoryController extends Controller
             DB::beginTransaction();
 
             SubCategory::find($id)->update([
-                'category_id' => $request->category_id,
+                'category_id' => $request->categoryId,
                 'name' => $request->name,
                 'updated_by' => auth()->id()
             ]);
