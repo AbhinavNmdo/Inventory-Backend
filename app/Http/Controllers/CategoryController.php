@@ -12,19 +12,19 @@ class CategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $category = Category::when($request->searchParam, function ($query) use ($request) {
+        $categories = Category::when($request->searchParam, function ($query) use ($request) {
             $query->where('name', 'like', "%{$request->searchParam}%");
         })->when($request->orderBy, function ($query) use ($request) {
             $query->orderBy($request->orderBy['column'], $request->orderBy['order']);
         })->select(['id', 'name']);
 
         if ($request->isPaginate) {
-            $category = $category->paginate(($request->perPage ?? 10), ['*'], 'page', ($request->page ?? 1));
+            $categories = $categories->paginate(($request->perPage ?? 10), ['*'], 'page', ($request->page ?? 1));
         } else {
-            $category = $category->get();
+            $categories = $categories->get();
         }
 
-        return sendRes(200, null, $category);
+        return sendRes(200, null, $categories);
     }
 
     public function store(Request $request)

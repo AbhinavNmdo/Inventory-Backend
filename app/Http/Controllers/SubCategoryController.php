@@ -13,7 +13,7 @@ class SubCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $subCategory = SubCategory::with('category:id,name')
+        $subCategories = SubCategory::with('category:id,name')
             ->when($request->searchParam, function ($query) use ($request) {
                 $query->where(function ($query) use ($request) {
                     $query->orWhere('name', 'like', "%{$request->searchParam}%")
@@ -26,22 +26,22 @@ class SubCategoryController extends Controller
             ->select('id', 'category_id', 'name');
         
         if ($request->isPaginate) {
-            $subCategory = $subCategory->paginate(($request->perPage ?? 10), ['*'], 'page', ($request->page ?? 1));
+            $subCategories = $subCategories->paginate(($request->perPage ?? 10), ['*'], 'page', ($request->page ?? 1));
         } else {
-            $subCategory = $subCategory->get();
+            $subCategories = $subCategories->get();
         }
 
         if ($request->orderBy && str_contains($request->orderBy['column'], '.')) {
-            $sortedResult = ($subCategory instanceof Collection ? $subCategory : $subCategory->getCollection())->sortBy($request->orderBy['column'], $request->orderBy['order'] == 'desc');
+            $sortedResult = ($subCategories instanceof Collection ? $subCategories : $subCategories->getCollection())->sortBy($request->orderBy['column'], $request->orderBy['order'] == 'desc');
 
-            if (!$subCategory instanceof Collection) {
-                $subCategory->setCollection($sortedResult->values());
+            if (!$subCategories instanceof Collection) {
+                $subCategories->setCollection($sortedResult->values());
             } else {
-                $subCategory = $sortedResult;
+                $subCategories = $sortedResult;
             }
         }
 
-        return sendRes(200, null, $subCategory);
+        return sendRes(200, null, $subCategories);
     }
 
     public function store(Request $request)

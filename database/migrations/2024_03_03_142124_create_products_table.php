@@ -11,17 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sub_categories', function (Blueprint $table) {
-            $table->mediumIncrements('id');
-            $table->mediumInteger('category_id')->unsigned()->nullable();
-            $table->string('name', 150)->nullable();
+        Schema::create('products', function (Blueprint $table) {
+            $table->mediumIncrements('id')->unsigned();
+            $table->mediumInteger('sub_category_id')->unsigned()->nullable();
+            $table->string('name')->nullable();
+            $table->decimal('stock', 6, 2)->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->mediumInteger('created_by')->unsigned()->nullable();
             $table->mediumInteger('updated_by')->unsigned()->nullable();
 
-            $table->index('category_id');
-            $table->foreign('category_id')->references('id')->on('categories');
+            $table->index('sub_category_id');
+            $table->foreign('sub_category_id')->references('id')->on('sub_categories');
         });
     }
 
@@ -30,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sub_categories');
+        Schema::dropIfExists('products');
     }
 };
