@@ -16,14 +16,20 @@ class ProductController extends Controller
             ->when($request->searchParam, function ($query) use ($request) {
                 $query->where(function ($query) use ($request) {
                     $query->orWhere('name', 'like', "%{$request->searchParam}%")
-                        ->orWhereHas('category', fn ($query) => $query->where('name', 'like', "%{$request->searchParam}%"));
+                        ->orWhereHas('category', fn($query) => $query->where('name', 'like', "%{$request->searchParam}%"));
                 });
             })
             ->when($request->orderBy, function ($query) use ($request) {
                 !str_contains($request->orderBy['column'], '.') && $query->orderBy($request->orderBy['column'], $request->orderBy['order']);
             })
             ->select('id', 'sub_category_id', 'name', 'stock');
-    
+
+        if ($request->isPaginate) {
+            $products = $products->paginate(($request->perPage ?? 10), ['*'], 'page', ($request->page ?? 1));
+        } else {
+            $products = $products->get();
+        }
+
         if ($request->orderBy && str_contains($request->orderBy['column'], '.')) {
             $sortedResult = ($products instanceof Collection ? $products : $products->getCollection())->sortBy($request->orderBy['column'], $request->orderBy['order'] == 'desc');
 
@@ -33,7 +39,7 @@ class ProductController extends Controller
                 $products = $sortedResult;
             }
         }
-        
+
         return sendRes(200, null, $products);
     }
 
@@ -52,15 +58,15 @@ class ProductController extends Controller
 
         try {
             DB::beginTransaction();
-        
-            Product::insert(collect($request->products)->map(function($req) use ($request) {
+
+            Product::insert(collect($request->products)->map(function ($req) use ($request) {
                 return [
                     'sub_category_id' => $request->subCategoryId,
                     'name' => $req['name'],
                     'stock' => $req['stock']
                 ];
             })->toArray());
-        
+
             DB::commit();
             return sendRes(200, 'Products has been created successfully.', null);
         } catch (Exception $th) {
@@ -88,15 +94,15 @@ class ProductController extends Controller
 
         try {
             DB::beginTransaction();
-        
+
             Product::update([
                 'sub_category_id' => $request->subCategoryId,
                 'name' => $request->name
             ]);
-        
+
             DB::commit();
             return sendRes(200, 'Product has been updated successfully.', null);
-        } catch (Exception ) {
+        } catch (Exception) {
             DB::rollBack();
             return sendRes(500, 'Something went wrong.', null);
         }

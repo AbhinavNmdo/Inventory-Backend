@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SubCategoryController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +31,11 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('sub-category/index', [SubCategoryController::class, 'index']);
     Route::resource('sub-category', SubCategoryController::class)->except([
+        'index'
+    ]);
+
+    Route::post('product/index', [ProductController::class, 'index']);
+    Route::resource('product', ProductController::class)->except([
         'index'
     ]);
 });
