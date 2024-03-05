@@ -1,9 +1,10 @@
 <?php
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-function sendRes(int $status, string|null $msg, LengthAwarePaginator|Collection|array|null $data) {
+function sendRes(int $status, string|null $msg, LengthAwarePaginator|Collection|array|null|Model $data) {
     return response()->json([
         'status' => $status,
         'msg' => $msg,

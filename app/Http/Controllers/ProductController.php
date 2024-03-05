@@ -16,7 +16,10 @@ class ProductController extends Controller
             ->when($request->searchParam, function ($query) use ($request) {
                 $query->where(function ($query) use ($request) {
                     $query->orWhere('name', 'like', "%{$request->searchParam}%")
-                        ->orWhereHas('category', fn($query) => $query->where('name', 'like', "%{$request->searchParam}%"));
+                        ->orWhereHas('sub_category', function($query) use ($request) {
+                            $query->where('name', 'like', "%{$request->searchParam}%")
+                                ->orWhereHas('category', fn($query) => $query->where('name', 'like', "%{$request->searchParam}%"));
+                        });
                 });
             })
             ->when($request->orderBy, function ($query) use ($request) {
@@ -49,7 +52,7 @@ class ProductController extends Controller
             'categoryId' => 'required|exists:categories,id,deleted_at,NULL',
             'subCategoryId' => 'required|exists:sub_categories,id,deleted_at,NULL',
             'products.*.name' => 'required|max:150|distinct|unique:sub_categories,name,NULL,id,deleted_at,NULL',
-            'products.*.stock' => 'required|digits|min:0'
+            'products.*.stock' => 'required|numeric|min:0'
         ]);
 
         if ($validator->fails()) {
@@ -95,7 +98,7 @@ class ProductController extends Controller
         try {
             DB::beginTransaction();
 
-            Product::update([
+            Product::find($id)->update([
                 'sub_category_id' => $request->subCategoryId,
                 'name' => $request->name
             ]);
