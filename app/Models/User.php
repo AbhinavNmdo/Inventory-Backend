@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
@@ -34,5 +35,15 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function product_info(): HasMany
+    {
+        return $this->hasMany(ProductInfo::class);
+    }
+
+    public function allotment_log(): HasMany
+    {
+        return $this->hasMany(AllotmentLog::class);
     }
 }

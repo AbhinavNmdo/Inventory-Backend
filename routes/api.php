@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\AllotmentLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SubCategoryController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -44,4 +46,11 @@ Route::middleware('auth:api')->group(function () {
     Route::resource('product', ProductController::class)->except([
         'index'
     ]);
+
+    Route::post('allogment/index', [AllotmentLogController::class, 'index']);
+    Route::post('allotment/allot-product', [AllotmentLogController::class, 'allotProduct']);
+    Route::post('allotment/return-product', [AllotmentLogController::class, 'returnProduct']);
+
+    Route::post('purchase/index', [PurchaseController::class, 'index']);
+    Route::post('purchase', [PurchaseController::class, 'store']);
 });

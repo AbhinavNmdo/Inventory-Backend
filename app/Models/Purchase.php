@@ -4,17 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Product extends Model
+class Purchase extends Model
 {
     use SoftDeletes;
 
     protected $fillable = [
-        'sub_category_id',
-        'name',
-        'stock',
+        'product_id',
+        'vendor',
+        'bill_no',
+        'amount',
+        'quantity',
         'created_at',
         'updated_at',
         'created_by',
@@ -22,13 +23,8 @@ class Product extends Model
         'deleted_at'
     ];
 
-    public function sub_category(): BelongsTo
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(SubCategory::class);
-    }
-
-    public function product_info(): HasMany
-    {
-        return $this->hasMany(ProductInfo::class);
+        return $this->belongsTo(Product::class);
     }
 }

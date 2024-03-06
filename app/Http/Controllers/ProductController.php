@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductInfo;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,13 +63,26 @@ class ProductController extends Controller
         try {
             DB::beginTransaction();
 
-            Product::insert(collect($request->products)->map(function ($req) use ($request) {
-                return [
+            $productInfoArr = [];
+            $productInfoCount = ProductInfo::count() + 1;
+            foreach ($request->products as $products) {
+                $product = Product::create([
+                    'category_id' => $request->categoryId,
                     'sub_category_id' => $request->subCategoryId,
-                    'name' => $req['name'],
-                    'stock' => $req['stock']
-                ];
-            })->toArray());
+                    'name' => $products['name'],
+                    'stock' => $products['stock']
+                ]);
+
+                for ($i=0; $i < $products['stock']; $i++) { 
+                    $productInfoArr[] = [
+                        'product_id' => $product->id,
+                        'product_no' => $productInfoCount + $i,
+                        'created_at' => now(),
+                        'created_by' => auth()->id()
+                    ];
+                }
+            }
+            ProductInfo::insert($productInfoArr);
 
             DB::commit();
             return sendRes(200, 'Products has been created successfully.', null);
