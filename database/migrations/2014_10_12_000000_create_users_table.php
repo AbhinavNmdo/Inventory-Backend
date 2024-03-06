@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->mediumIncrements('id')->unsigned();
-            $table->string('name');
-            $table->string('username')->unique();
-            $table->string('password');
+            $table->string('name')->nullable();
+            $table->string('email')->nullable();
+            $table->string('username')->unique()->nullable();
+            $table->string('password')->nullable();
+            $table->enum('role', ['Admin', 'Member'])->default('Member');
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

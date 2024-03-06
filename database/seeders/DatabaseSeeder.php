@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Abhinav Namdeo',
             'username' => 'abhaynam22',
             'password' => bcrypt('Admin@123'),
+            'role' => 'Admin'
         ]);
     }
 }

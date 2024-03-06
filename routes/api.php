@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SubCategoryController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,6 +24,11 @@ Route::post('refresh', [AuthController::class, 'refresh']);
 Route::middleware('auth:api')->group(function () {
     Route::post('me', [AuthController::class, 'me']);
     Route::delete('logout', [AuthController::class, 'logout']);
+
+    Route::post('user/index', [UserController::class, 'index']);
+    Route::resource('user', UserController::class)->except([
+        'index'
+    ]);
 
     Route::post('category/index', [CategoryController::class, 'index']);
     Route::resource('category', CategoryController::class)->except([
