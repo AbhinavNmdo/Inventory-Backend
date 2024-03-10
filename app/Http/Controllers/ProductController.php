@@ -26,6 +26,13 @@ class ProductController extends Controller
             ->when($request->orderBy, function ($query) use ($request) {
                 !str_contains($request->orderBy['column'], '.') && $query->orderBy($request->orderBy['column'], $request->orderBy['order']);
             })
+            ->when($request->filters, function ($query) use ($request) {
+                foreach ($request->filters as $filter) {
+                    if (!str_contains($filter['column'], '.')) {
+                        $query->where($filter['column'], $filter['value']);
+                    }
+                }
+            })
             ->select('id', 'sub_category_id', 'name', 'stock');
 
         if ($request->isPaginate) {

@@ -11,15 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('purchases', function (Blueprint $table) {
+        Schema::create('purchase_infos', function (Blueprint $table) {
             $table->mediumIncrements('id')->unsigned();
-            $table->string('vendor')->nullable();
-            $table->string('bill_no', 50)->nullable();
-            $table->decimal('total_amt', 10, 2)->nullable();
+            $table->mediumInteger('purchase_id')->unsigned();
+            $table->mediumInteger('product_id')->unsigned();
+            $table->decimal('quantity', 6, 2)->nullable();
+            $table->decimal('amount', 10, 2)->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->mediumInteger('created_by')->unsigned()->nullable();
             $table->mediumInteger('updated_by')->unsigned()->nullable();
+
+            $table->index('purchase_id');
+            $table->index('product_id');
+            $table->foreign('purchase_id')->references('id')->on('purchases');
+            $table->foreign('product_id')->references('id')->on('products');
         });
     }
 
@@ -28,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('purchases');
+        Schema::dropIfExists('purchase_infos');
     }
 };
