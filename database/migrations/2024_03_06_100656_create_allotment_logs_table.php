@@ -17,6 +17,7 @@ return new class extends Migration
             $table->mediumInteger('product_info_id')->unsigned()->nullable();
             $table->date('allotment_date')->nullable();
             $table->date('return_date')->nullable();
+            $table->boolean('is_damage')->default(0);
             $table->string('remark')->nullable();
             $table->timestamps();
             $table->softDeletes();

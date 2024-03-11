@@ -27,7 +27,7 @@ class AllotmentLogController extends Controller
             })
             ->when($request->orderBy, function ($query) use ($request) {
                 !str_contains($request->orderBy['column'], '.') && $query->orderBy($request->orderBy['column'], $request->orderBy['order']);
-            })->select('id', 'user_id', 'product_id', 'allotment_date', 'is_damage', 'remark');
+            })->select('id', 'user_id', 'product_id', 'allotment_date', 'return_date', 'is_damage', 'remark');
 
         if ($request->isPaginate) {
             $allotments = $allotments->paginate(($request->perPage ?? 10), ['*'], 'page', ($request->page ?? 1));
@@ -52,7 +52,6 @@ class AllotmentLogController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'userId' => 'required|exists:users,id',
-            'productId' => 'required|exists:products,id',
             'productInfoId' => 'required|exists:product_infos,id',
             'allotmentDate' => 'required|date',
             'remark' => 'nullable|max:250'
@@ -73,8 +72,9 @@ class AllotmentLogController extends Controller
                 'created_by' => auth()->id()
             ]);
 
-            Product::find($request->productId)->increment('stock');
-            ProductInfo::find($request->productInfoId)->update([
+            $productInfo = ProductInfo::find($request->productInfoId);
+            Product::find($productInfo->product_id)->increment('stock');
+            $productInfo->update([
                 'user_id' => $request->userId
             ]);
 
@@ -86,10 +86,9 @@ class AllotmentLogController extends Controller
         }
     }
 
-    public function returnProduct(Request $request)
+    public function returnProduct($id, Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'allotmentLogId' => 'required|exists:allotment_logs,id',
             'returnDate' => 'required|date',
             'isDamage' => 'required|boolean'
         ]);
@@ -102,6 +101,10 @@ class AllotmentLogController extends Controller
             DB::beginTransaction();
 
             $allotmentLog = AllotmentLog::find($request->allotmentLogId);
+
+            if (!$allotmentLog) {
+                return sendRes(403, 'Allotment not found.', null);
+            }
 
             if (!$request->isDamage) {
                 Product::find($allotmentLog->product_info->product_id)->decrement('stock');

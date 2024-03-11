@@ -53,7 +53,7 @@ class PurchaseController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'vendor' => 'required|max:150',
-            'billNo' => 'required|max:50',
+            'billNo' => 'required|max:50|unique:purchases,bill_no,NULL,id,deleted_at,NULL',
             'purchases.*.productId' => 'required|exists:products,id',
             'purchases.*.quantity' => 'required|numeric',
             'purchases.*.amount' => 'required|numeric',
@@ -106,5 +106,10 @@ class PurchaseController extends Controller
             DB::rollBack();
             return sendRes(500, 'Something went wrong.', null);
         }
+    }
+
+    public function vendorNamesList()
+    {
+        return sendRes(200, null, Purchase::groupBy('vendor')->pluck('vendor'));
     }
 }

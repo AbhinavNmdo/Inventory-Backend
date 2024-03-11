@@ -15,12 +15,18 @@ class AllotmentLog extends Model
         'user_id',
         'product_info_id',
         'allotment_date',
+        'return_date',
+        'is_damage',
         'remark',
         'careted_at',
         'updated_at',
         'created_by',
         'updated_by',
         'deleted_at'
+    ];
+
+    protected $casts = [
+        'is_damage' => 'boolean'
     ];
 
     public function user(): BelongsTo

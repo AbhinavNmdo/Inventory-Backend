@@ -49,8 +49,9 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('allogment/index', [AllotmentLogController::class, 'index']);
     Route::post('allotment/allot-product', [AllotmentLogController::class, 'allotProduct']);
-    Route::post('allotment/return-product', [AllotmentLogController::class, 'returnProduct']);
+    Route::post('allotment/return-product/{id}', [AllotmentLogController::class, 'returnProduct']);
 
     Route::post('purchase/index', [PurchaseController::class, 'index']);
     Route::post('purchase', [PurchaseController::class, 'store']);
+    Route::get('purchase/vendors', [PurchaseController::class, 'vendorNamesList']);
 });
