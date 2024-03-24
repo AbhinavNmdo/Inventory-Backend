@@ -138,4 +138,9 @@ class ProductController extends Controller
 
         return sendRes(200, 'Product has been deleted successfully.', null);
     }
+
+    public function productInfoList()
+    {
+        return sendRes(200, null, ProductInfo::with('product:id,name')->where(['is_damage' => 0, 'user_id' => null])->get(['id', 'product_id', 'product_no']));
+    }
 }

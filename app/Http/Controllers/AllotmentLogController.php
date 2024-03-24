@@ -27,7 +27,7 @@ class AllotmentLogController extends Controller
             })
             ->when($request->orderBy, function ($query) use ($request) {
                 !str_contains($request->orderBy['column'], '.') && $query->orderBy($request->orderBy['column'], $request->orderBy['order']);
-            })->select('id', 'user_id', 'product_id', 'allotment_date', 'return_date', 'is_damage', 'remark');
+            })->select('id', 'user_id', 'product_info_id', 'allotment_date', 'return_date', 'is_damage', 'remark');
 
         if ($request->isPaginate) {
             $allotments = $allotments->paginate(($request->perPage ?? 10), ['*'], 'page', ($request->page ?? 1));
@@ -100,7 +100,7 @@ class AllotmentLogController extends Controller
         try {
             DB::beginTransaction();
 
-            $allotmentLog = AllotmentLog::find($request->allotmentLogId);
+            $allotmentLog = AllotmentLog::find($id);
 
             if (!$allotmentLog) {
                 return sendRes(403, 'Allotment not found.', null);

@@ -46,8 +46,9 @@ Route::middleware('auth:api')->group(function () {
     Route::resource('product', ProductController::class)->except([
         'index'
     ]);
+    Route::get('product-info-list', [ProductController::class, 'productInfoList']);
 
-    Route::post('allogment/index', [AllotmentLogController::class, 'index']);
+    Route::post('allotment/index', [AllotmentLogController::class, 'index']);
     Route::post('allotment/allot-product', [AllotmentLogController::class, 'allotProduct']);
     Route::post('allotment/return-product/{id}', [AllotmentLogController::class, 'returnProduct']);
 
