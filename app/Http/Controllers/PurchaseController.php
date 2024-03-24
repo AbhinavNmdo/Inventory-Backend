@@ -108,6 +108,11 @@ class PurchaseController extends Controller
         }
     }
 
+    public function show($id)
+    {
+        return sendRes(200, null, Purchase::with('purchase_info:id,purchase_id,product_id,quantity,amount', 'purchase_info.product:id,name')->select(['id', 'vendor', 'bill_no', 'total_amt'])->find($id));
+    }
+
     public function vendorNamesList()
     {
         return sendRes(200, null, Purchase::groupBy('vendor')->pluck('vendor'));

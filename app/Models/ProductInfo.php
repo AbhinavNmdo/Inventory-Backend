@@ -15,12 +15,16 @@ class ProductInfo extends Model
         'product_id',
         'user_id',
         'product_no',
-        'is_danage',
+        'is_damage',
         'created_at',
         'updated_at',
         'created_by',
         'updated_by',
         'deleted_at'
+    ];
+
+    protected $casts = [
+        'is_damage' => 'bool'
     ];
 
     public function product(): BelongsTo

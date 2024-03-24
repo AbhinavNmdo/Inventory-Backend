@@ -73,7 +73,6 @@ class AllotmentLogController extends Controller
             ]);
 
             $productInfo = ProductInfo::find($request->productInfoId);
-            Product::find($productInfo->product_id)->increment('stock');
             $productInfo->update([
                 'user_id' => $request->userId
             ]);
@@ -106,17 +105,19 @@ class AllotmentLogController extends Controller
                 return sendRes(403, 'Allotment not found.', null);
             }
 
-            if (!$request->isDamage) {
+            if ($request->isDamage) {
                 Product::find($allotmentLog->product_info->product_id)->decrement('stock');
             }
 
             $allotmentLog->update([
                 'return_date' => Carbon::parse($request->returnDate)->format('Y-m-d'),
+                'is_damage' => $request->isDamage,
                 'updated_by' => auth()->id()
             ]);
 
             ProductInfo::find($allotmentLog->product_info_id)->update([
-                'user_id' => null
+                'user_id' => null,
+                'is_damage' => $request->isDamage
             ]);
 
             DB::commit();

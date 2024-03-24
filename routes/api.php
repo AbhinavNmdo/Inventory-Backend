@@ -27,6 +27,8 @@ Route::middleware('auth:api')->group(function () {
     Route::post('me', [AuthController::class, 'me']);
     Route::delete('logout', [AuthController::class, 'logout']);
 
+    Route::get('dashboard', [UserController::class, 'dashboard']);
+
     Route::post('user/index', [UserController::class, 'index']);
     Route::resource('user', UserController::class)->except([
         'index'
@@ -46,7 +48,7 @@ Route::middleware('auth:api')->group(function () {
     Route::resource('product', ProductController::class)->except([
         'index'
     ]);
-    Route::get('product-info-list', [ProductController::class, 'productInfoList']);
+    Route::post('product/product-info/index', [ProductController::class, 'productInfoIndex']);
 
     Route::post('allotment/index', [AllotmentLogController::class, 'index']);
     Route::post('allotment/allot-product', [AllotmentLogController::class, 'allotProduct']);
@@ -54,5 +56,6 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('purchase/index', [PurchaseController::class, 'index']);
     Route::post('purchase', [PurchaseController::class, 'store']);
+    Route::get('purchase/{id}', [PurchaseController::class, 'show']);
     Route::get('purchase/vendors', [PurchaseController::class, 'vendorNamesList']);
 });

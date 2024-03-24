@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ProductInfo;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
@@ -13,7 +14,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $users = User::where('role', 'Member')
-            ->when($request->searchParam, function($query) use ($request) {
+            ->when($request->searchParam, function ($query) use ($request) {
                 $query->where(function ($query) use ($request) {
                     $query->orWhere('name', 'like', "%{$request->searchParam}%")
                         ->orWhere('email', 'like', "%{$request->searchParam}%");
@@ -90,5 +91,15 @@ class UserController extends Controller
     {
         User::find($id)->delete();
         return sendRes(200, 'User has been deleted successfully.', null);
+    }
+
+    public function dashboard()
+    {
+        return sendRes(200, null, [
+            'users' => User::count(),
+            'totalStocks' => ProductInfo::count(),
+            'allotedStocks' => ProductInfo::whereNotNull('user_id')->count(),
+            'damageStocks' => ProductInfo::where('is_damage', 1)->count()
+        ]);
     }
 }

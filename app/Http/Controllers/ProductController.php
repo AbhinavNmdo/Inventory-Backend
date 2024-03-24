@@ -139,8 +139,48 @@ class ProductController extends Controller
         return sendRes(200, 'Product has been deleted successfully.', null);
     }
 
-    public function productInfoList()
+    public function productInfoIndex(Request $request)
     {
-        return sendRes(200, null, ProductInfo::with('product:id,name')->where(['is_damage' => 0, 'user_id' => null])->get(['id', 'product_id', 'product_no']));
+        $productInfos = ProductInfo::with('product:id,name', 'user:id,name,email')
+            ->when($request->searchParam, function ($query) use ($request) {
+                $query->where(function ($query) use ($request) {
+                    $query->orWhere('name', 'like', "%{$request->searchParam}%")
+                        ->orWhereHas('user', function($query) use ($request) {
+                            $query->where('name', 'like', "%{$request->searchParam}%");
+                        })
+                        ->orWhereHas('product', function($query) use ($request) {
+                            $query->where('name', 'like', "%{$request->searchParam}%");
+                        });
+                });
+            })
+            ->when($request->orderBy, function ($query) use ($request) {
+                !str_contains($request->orderBy['column'], '.') && $query->orderBy($request->orderBy['column'], $request->orderBy['order']);
+            })
+            ->when($request->filters, function ($query) use ($request) {
+                foreach ($request->filters as $filter) {
+                    if (!str_contains($filter['column'], '.')) {
+                        $query->where($filter['column'], $filter['value']);
+                    }
+                }
+            })
+            ->select('id', 'product_id', 'user_id', 'product_no', 'is_damage');
+
+        if ($request->isPaginate) {
+            $productInfos = $productInfos->paginate(($request->perPage ?? 10), ['*'], 'page', ($request->page ?? 1));
+        } else {
+            $productInfos = $productInfos->get();
+        }
+
+        if ($request->orderBy && str_contains($request->orderBy['column'], '.')) {
+            $sortedResult = ($productInfos instanceof Collection ? $productInfos : $productInfos->getCollection())->sortBy($request->orderBy['column'], $request->orderBy['order'] == 'desc');
+
+            if (!$productInfos instanceof Collection) {
+                $productInfos->setCollection($sortedResult->values());
+            } else {
+                $productInfos = $sortedResult;
+            }
+        }
+
+        return sendRes(200, null, $productInfos);
     }
 }
